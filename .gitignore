@@ -1,0 +1,13 @@
+
+# Create .gitignore file
+echo "node_modules/" > .gitignore
+echo "*.log" >> .gitignore
+echo ".env" >> .gitignorecl
+# Add this content to your .gitignore file:
+node_modules/
+.env
+*.log
+.DS_Store
+dist/
+build/
+coverage/
