@@ -7,4 +7,4 @@ function generateShortCode() {
   return nanoid();
 }
 
-module.exports = generateShortCode;
+module.exports = { generateShortCode };

@@ -1,7 +1,7 @@
 const express = require('express');
 const urlController = require('../controllers/urlController');
 const router = express.Router();
-
+const tokenAuth = require('../middleware/tokenAuth');
 /**
  * @swagger
  * tags:
@@ -28,6 +28,14 @@ const router = express.Router();
  *           type: string
  *           description: The original long URL
  *           example: "https://www.google.com"
+ *         userCode:
+ *           type: string
+ *           description: "User Code or ID"
+ *           example: "Shadow"
+ *         updateFlag:
+ *           type: boolean
+ *           description: "Flag indicating if the URL was updated"
+ *           example: false
  *         created_at:
  *           type: string
  *           format: date-time
@@ -265,7 +273,7 @@ router.get('/:id', (req, res) => urlController.getUrlById(req, res));
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post('/', (req, res) => urlController.createShortUrl(req, res));
+router.post('/', tokenAuth, (req, res) => urlController.createShortUrl(req, res));
 
 /**
  * @swagger
@@ -491,4 +499,15 @@ router.delete('/short/:shortCode', (req, res) => urlController.deleteUrlByShortC
  */
 router.get('/redirect/:shortCode', (req, res) => urlController.redirectToOriginal(req, res));
 
+
+const { validateUserRegistration, validateUrlLogin, validateUrlCreation, validateUrlUpdate } = require('../middleware/validation');
+
+
+
+
+// Apply validation middleware
+ router.post('/create', validateUrlCreation, urlController.createShortUrl);
+router.post('/update', validateUrlUpdate, urlController.updateUrlById);
+
+// module.exports = router;
 module.exports = router;

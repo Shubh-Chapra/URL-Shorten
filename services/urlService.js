@@ -4,13 +4,19 @@ const { generateShortCode } = require('../utils/shortUrlGenerator');
 class UrlService {
   async createShortUrl(data, host) {
     try {
-      const { original_url, short_code, expires_at } = data;
+      const { original_url,
+  entity_type,
+  entity_id,
+  product_type,
+  extra_params,
+  expiration_date, userCode } = data;
 
       if (!original_url) {
         return { success: false, statusCode: 400, message: 'Original URL is required' };
       }
 
       const shortCode = short_code || generateShortCode();
+      const app = req.appInfo;
       const existing = await urlRepository.findByShortCode(shortCode);
 
       if (existing) {
@@ -22,9 +28,17 @@ class UrlService {
       }
 
       const newUrl = await urlRepository.create({
+        app_id: app._id,
         original_url,
         short_code: shortCode,
-        expires_at
+        user_code,
+        update_flag: false,
+        expiration_date,
+        entity_type,
+        entity_id,
+        product_type,
+        extra_params,
+        created_at: new Date()
       });
 
       return {
@@ -38,6 +52,11 @@ class UrlService {
     } catch (error) {
       return { success: false, statusCode: 500, message: 'Server error', error: error.message };
     }
+    const token = req.headers['x-app-token'];
+if (!token) {
+  return res.status(401).json({ success: false, message: "Missing app token" });
+}
+
   }
 
   async getAllUrls() {
@@ -74,6 +93,7 @@ class UrlService {
           return { success: false, statusCode: 409, message: 'Short code already exists' };
         }
       }
+      updateData.updateFlag = true;
 
       const updated = await urlRepository.updateById(id, updateData);
       if (!updated) {
@@ -94,7 +114,8 @@ class UrlService {
           return { success: false, statusCode: 409, message: 'New short code already exists' };
         }
       }
-
+      updateData.updateFlag = true;
+      
       const updated = await urlRepository.updateByShortCode(shortCode, updateData);
       if (!updated) {
         return { success: false, statusCode: 404, message: 'Short URL not found' };

@@ -1,3 +1,6 @@
+
+
+
 const express = require('express');
 const userController = require('../controllers/userController');
 const router = express.Router();
@@ -335,5 +338,19 @@ router.put('/:id', (req, res) => userController.updateUserById(req, res));
  *               $ref: '#/components/schemas/Error'
  */
 router.delete('/:id', (req, res) => userController.deleteUserById(req, res));
+
+
+
+const { validateUserRegistration, validateUserLogin } = require('../middleware/validation');
+
+const { register, login } = require('../controllers/userController');
+const { UserRegisterDto, UserLoginDto } = require('../dtos/userDto');
+const validateDto = require('../middleware/validationDto');
+
+router.post('/register', validateDto(UserRegisterDto), userController.register);
+router.post('/login', validateDto(UserLoginDto), userController.login);
+// Apply validation middleware
+// router.post('/register', validateUserRegistration, userController.register);
+// router.post('/login', validateUserLogin, userController.login);
 
 module.exports = router;
