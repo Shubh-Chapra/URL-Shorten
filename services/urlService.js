@@ -2,21 +2,14 @@ const urlRepository = require('../repositories/urlRepository');
 const { generateShortCode } = require('../utils/shortUrlGenerator');
 
 class UrlService {
-  async createShortUrl(data, host) {
+ async createShortUrl(data, host, app) {
     try {
-      const { original_url,
-  entity_type,
+      const {entity_type,
   entity_id,
-  product_type,
   extra_params,
-  expiration_date, userCode } = data;
-
-      if (!original_url) {
-        return { success: false, statusCode: 400, message: 'Original URL is required' };
-      }
+  expiration_date, short_code, user_code } = data;
 
       const shortCode = short_code || generateShortCode();
-      const app = req.appInfo;
       const existing = await urlRepository.findByShortCode(shortCode);
 
       if (existing) {
@@ -29,14 +22,12 @@ class UrlService {
 
       const newUrl = await urlRepository.create({
         app_id: app._id,
-        original_url,
         short_code: shortCode,
         user_code,
         update_flag: false,
         expiration_date,
         entity_type,
         entity_id,
-        product_type,
         extra_params,
         created_at: new Date()
       });
@@ -52,10 +43,6 @@ class UrlService {
     } catch (error) {
       return { success: false, statusCode: 500, message: 'Server error', error: error.message };
     }
-    const token = req.headers['x-app-token'];
-if (!token) {
-  return res.status(401).json({ success: false, message: "Missing app token" });
-}
 
   }
 
@@ -85,16 +72,55 @@ if (!token) {
     }
   }
 
-  async updateUrlById(id, updateData) {
+  async getUrlByShortCode(shortCode) {
+  try {
+  const url = await urlRepository.findByShortCode(shortCode, true); 
+
+    
+    if (!url) {
+      return { success: false, statusCode: 404, message: 'URL not found' };
+    }
+
+    return {
+      success: true,
+      data: {
+        app_name: url.app_id?.name,
+        base_url: url.app_id?.base_url,
+        entity_type: url.entity_type,
+        entity_id: url.entity_id,
+        extra_params: url.extra_params,
+        user_code: url.user_code,
+        short_code: url.short_code,
+        created_at: url.created_at
+      }
+    };
+  } catch (error) {
+    return {
+      success: false,
+      statusCode: 500,
+      message: 'Error retrieving URL',
+      error: error.message
+    };
+  }
+}
+
+  async updateUrlById(id, updateData, app) {
     try {
-      if (updateData.short_code) {
+      const url = await urlRepository.findById(id);
+      if (!url) {
+      return { success: false, statusCode: 404, message: 'URL not found' };
+    }
+        if (url.app_id.toString() !== app._id.toString()) {
+      return { success: false, statusCode: 403, message: 'Unauthorized app' };
+    }
+    if (updateData.short_code) {
         const existing = await urlRepository.findByShortCode(updateData.short_code);
         if (existing && existing._id.toString() !== id) {
           return { success: false, statusCode: 409, message: 'Short code already exists' };
         }
       }
-      updateData.updateFlag = true;
-
+      updateData.update_flag = true;
+      
       const updated = await urlRepository.updateById(id, updateData);
       if (!updated) {
         return { success: false, statusCode: 404, message: 'URL not found' };
@@ -106,47 +132,68 @@ if (!token) {
     }
   }
 
-  async updateUrlByShortCode(shortCode, updateData) {
+  async updateUrlByShortCode(shortCode, updateData, app) {
     try {
+      const url = await urlRepository.findByShortCode(shortCode);
+       if (!url) {
+      return { success: false, statusCode: 404, message: 'URL not found' };
+    }
+     if (url.app_id.toString() !== app._id.toString()) {
+      return { success: false, statusCode: 403, message: 'Unauthorized app' };
+    }
       if (updateData.short_code && updateData.short_code !== shortCode) {
         const existing = await urlRepository.findByShortCode(updateData.short_code);
         if (existing) {
           return { success: false, statusCode: 409, message: 'New short code already exists' };
         }
       }
-      updateData.updateFlag = true;
+       
+      updateData.update_flag = true;
       
       const updated = await urlRepository.updateByShortCode(shortCode, updateData);
       if (!updated) {
         return { success: false, statusCode: 404, message: 'Short URL not found' };
       }
-
+     
       return { success: true, data: updated, message: 'Short URL updated successfully' };
     } catch (error) {
       return { success: false, statusCode: 500, message: 'Error updating URL', error: error.message };
     }
   }
 
-  async deleteUrlById(id) {
+  async deleteUrlById(id, app) {
     try {
+      const url = await urlRepository.findById(id);
+       if (!url) {
+      return { success: false, statusCode: 404, message: 'URL not found' };
+    }
+     if (url.app_id.toString() !== app._id.toString()) {
+      return { success: false, statusCode: 403, message: 'Unauthorized app' };
+    }
       const deleted = await urlRepository.deleteById(id);
       if (!deleted) {
         return { success: false, statusCode: 404, message: 'URL not found' };
       }
-
+       
       return { success: true, message: 'URL deleted successfully' };
     } catch (error) {
       return { success: false, statusCode: 500, message: 'Error deleting URL', error: error.message };
     }
   }
 
-  async deleteUrlByShortCode(shortCode) {
+  async deleteUrlByShortCode(shortCode, app) {
     try {
+         const url = await urlRepository.findByShortCode(shortCode);
+          if (!url) {
+      return { success: false, statusCode: 404, message: 'URL not found' };
+    }
+      if (url.app_id.toString() !== app._id.toString()) {
+      return { success: false, statusCode: 403, message: 'Unauthorized app' };
+    }
       const deleted = await urlRepository.deleteByShortCode(shortCode);
       if (!deleted) {
         return { success: false, statusCode: 404, message: 'Short URL not found' };
       }
-
       return { success: true, message: 'Short URL deleted successfully' };
     } catch (error) {
       return { success: false, statusCode: 500, message: 'Error deleting short URL', error: error.message };
@@ -154,36 +201,42 @@ if (!token) {
   }
 
   async redirectToOriginal(shortCode) {
-    try {
-      const url = await urlRepository.findByShortCode(shortCode);
-      if (!url) {
-        return { success: false, statusCode: 404, message: 'Short URL not found' };
-      }
-
-      if (url.expires_at && new Date() > url.expires_at) {
-        return { success: false, statusCode: 410, message: 'Short URL has expired' };
-      }
-
-      return { success: true, redirectUrl: url.original_url };
-    } catch (error) {
-      return { success: false, statusCode: 500, message: 'Redirect failed', error: error.message };
+  try {
+     const url = await urlRepository.findByShortCode(shortCode, true);
+    if (!url) {
+      return { success: false, statusCode: 404, message: 'Short URL not found' };
     }
-  }
 
-  async getUrlStats() {
-    try {
-      const urls = await urlRepository.findAll();
-      const stats = {
-        total: urls.length,
-        active: urls.filter(u => !u.expires_at || new Date() < u.expires_at).length,
-        expired: urls.filter(u => u.expires_at && new Date() > u.expires_at).length
-      };
-
-      return { success: true, data: stats };
-    } catch (error) {
-      return { success: false, statusCode: 500, message: 'Failed to fetch stats', error: error.message };
+    if (url.expires_at && new Date() > url.expires_at) {
+      return { success: false, statusCode: 410, message: 'Short URL has expired' };
     }
+
+    const baseUrl = url.app_id?.base_url;
+    if (!baseUrl) {
+      return { success: false, statusCode: 500, message: 'Base URL not found in app config' };
+    }
+
+    return { success: true, redirectUrl: baseUrl };
+  } catch (error) {
+    return { success: false, statusCode: 500, message: 'Redirect failed', error: error.message };
   }
 }
+
+
+//   async getUrlStats() {
+//     try {
+//       const urls = await urlRepository.findAll();
+//       const stats = {
+//         total: urls.length,
+//         active: urls.filter(u => !u.expires_at || new Date() < u.expires_at).length,
+//         expired: urls.filter(u => u.expires_at && new Date() > u.expires_at).length
+//       };
+
+//       return { success: true, data: stats };
+//     } catch (error) {
+//       return { success: false, statusCode: 500, message: 'Failed to fetch stats', error: error.message };
+//     }
+//   }
+ }
 
 module.exports = new UrlService();

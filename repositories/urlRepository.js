@@ -39,8 +39,13 @@ class UrlRepository {
     return ShortUrl.findOneAndDelete({ short_code: shortCode });
   }
 
- findByShortCode(shortCode) {
-   return ShortUrl.findOne({ short_code: shortCode });
-    }
+ findByShortCode(shortCode, populateApp = false) {
+  let query = ShortUrl.findOne({ short_code: shortCode });
+  if (populateApp) {
+    query = query.populate('app_id'); // Populate base_url and app_name from App model
+  }
+  return query.exec();
+}
+
 }
 module.exports = new UrlRepository();

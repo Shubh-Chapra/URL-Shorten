@@ -6,11 +6,27 @@ class UrlController {
     res.status(status).json(result);
   }
 
-  async createShortUrl(req, res) {
-    const host = `${req.protocol}://${req.get('host')}`;
-    const result = await urlService.createShortUrl(req.body, host);
-    this.handleResponse(result, res);
-  }
+ async createShortUrl(req, res) {
+  const host = `${req.protocol}://${req.get('host')}`;
+  const result = await urlService.createShortUrl(req.body, host, req.appInfo);
+
+  // Extract only needed fields
+  const { app_id, short_code, user_code, created_at } = result.data;
+  const short_url = result.short_url;
+
+  const minimalData = {
+    app_id,
+    short_code,
+    user_code,
+    created_at
+  };
+
+  this.handleResponse({
+    ...result,
+    data: minimalData,
+    short_url
+  }, res);
+}
 
   async getAllUrls(req, res) {
     const result = await urlService.getAllUrls();
@@ -22,23 +38,28 @@ class UrlController {
     this.handleResponse(result, res);
   }
 
+  async getUrlByShortCode(req, res) {
+  const result = await urlService.getUrlByShortCode(req.params.shortCode);
+  this.handleResponse(result, res);
+}
+
   async updateUrlById(req, res) {
-    const result = await urlService.updateUrlById(req.params.id, req.body);
+    const result = await urlService.updateUrlById(req.params.id, req.body, req.appInfo);
     this.handleResponse(result, res);
   }
 
   async updateUrlByShortCode(req, res) {
-    const result = await urlService.updateUrlByShortCode(req.params.shortCode, req.body);
+    const result = await urlService.updateUrlByShortCode(req.params.shortCode, req.body, req.appInfo);
     this.handleResponse(result, res);
   }
 
   async deleteUrlById(req, res) {
-    const result = await urlService.deleteUrlById(req.params.id);
+    const result = await urlService.deleteUrlById(req.params.id, req.appInfo);
     this.handleResponse(result, res);
   }
 
   async deleteUrlByShortCode(req, res) {
-    const result = await urlService.deleteUrlByShortCode(req.params.shortCode);
+    const result = await urlService.deleteUrlByShortCode(req.params.shortCode, req.appInfo);
     this.handleResponse(result, res);
   }
 

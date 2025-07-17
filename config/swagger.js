@@ -11,13 +11,26 @@ const options = {
     },
     servers: [
       {
-        url: 'http://localhost:8080', // change if needed
+        url: 'http://localhost:8080',
+      },
+    ],
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT', // or "Dummy"
+        },
+      },
+    },
+    security: [
+      {
+        bearerAuth: [],
       },
     ],
   },
   apis: ['./routes/*.js'], // Path to your route files
 };
-
 
 const specs = swaggerJsdoc(options);
 
@@ -25,4 +38,3 @@ module.exports = {
   swaggerUi,
   specs,
 };
-
