@@ -222,21 +222,6 @@ class UrlService {
   }
 }
 
-
-//   async getUrlStats() {
-//     try {
-//       const urls = await urlRepository.findAll();
-//       const stats = {
-//         total: urls.length,
-//         active: urls.filter(u => !u.expires_at || new Date() < u.expires_at).length,
-//         expired: urls.filter(u => u.expires_at && new Date() > u.expires_at).length
-//       };
-
-//       return { success: true, data: stats };
-//     } catch (error) {
-//       return { success: false, statusCode: 500, message: 'Failed to fetch stats', error: error.message };
-//     }
-//   }
  }
 
 module.exports = new UrlService();
