@@ -177,17 +177,22 @@ This can be added later for multi-user dashboard:
 
 ```
 .
-├── controllers/          # Route handlers
-├── services/             # Business logic
-├── repositories/         # DB queries
-├── models/               # Mongoose schemas
-├── routes/               # Route definitions
-├── middlewares/          # Auth, DTO, Error handling
-├── utils/                # Generators, helpers
-├── docs/                 # Swagger config
-├── .env                  # Env variables
-├── index.js              # Entry point
-└── README.md
+├── controllers/        # Route handlers and request processors  
+├── dtos/               # DTO schemas for request validation  
+├── middleware/         # Auth, error handling, and input sanitization  
+├── models/             # Mongoose schemas (App, shortUrl)  
+├── repositories/       # MongoDB access layer  
+├── routes/             # Express route definitions  
+├── services/           # Business logic and orchestration  
+├── utils/              # Short code generators, constants, helpers  
+├── validations/        # Additional Joi validators  
+├── node_modules/       # Installed dependencies  
+├── .env                # Environment variables  
+├── .gitignore          # Git exclusions  
+├── package.json        # Project metadata and dependencies  
+├── README.md           # Project overview  
+ └── server.js           # Application entry point
+
 ```
 
 ---
@@ -221,7 +226,7 @@ REDIS_URL=redis://localhost:6379
 ### 4. Start the App
 
 ```bash
-node index.js
+node server.js
 ```
 
 ### 5. Check Swagger Docs
@@ -249,7 +254,6 @@ curl -X POST http://localhost:8080/api/shorten \
   -H "Authorization: Bearer <token>" \
   -H "Content-Type: application/json" \
   -d '{
-    "short_code": "vid2025",
     "entity_type": "video",
     "entity_id": "VID025",
     "user_code": "user@abc",
