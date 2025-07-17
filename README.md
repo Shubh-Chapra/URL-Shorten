@@ -191,7 +191,7 @@ This can be added later for multi-user dashboard:
 ├── .gitignore          # Git exclusions  
 ├── package.json        # Project metadata and dependencies  
 ├── README.md           # Project overview  
- └── server.js           # Application entry point
+├── server.js           # Application entry point
 
 ```
 
