@@ -26,11 +26,13 @@ const errorHandler = require('./middleware/errorHandler');
 connectDB();
 
 app.use('/api/shorten', urlRoutes);
+app.use('/urls' , urlRoutes);
 app.use('/test', testRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/auth', authRoutes); 
 const appRoutes = require('./routes/appRoutes'); 
 app.use('/api/app', appRoutes); 
+
 
 //app.use(errqorHandler);
 

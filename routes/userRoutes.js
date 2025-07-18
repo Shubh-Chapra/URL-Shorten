@@ -349,8 +349,5 @@ const validateDto = require('../middleware/validationDto');
 
 router.post('/register', validateDto(UserRegisterDto), userController.register);
 router.post('/login', validateDto(UserLoginDto), userController.login);
-// Apply validation middleware
-// router.post('/register', validateUserRegistration, userController.register);
-// router.post('/login', validateUserLogin, userController.login);
 
 module.exports = router;

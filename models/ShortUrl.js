@@ -10,6 +10,7 @@ const shortUrlSchema = new mongoose.Schema({
   user_code : {type: String, unique: true},
   update_flag: {type : Boolean},
   entity_id: { type: String },
+  redirect_path: { type: String },
   extra_params: { type: Map, of: String }, // OR just use Mixed
   created_at: { type: Date, default: Date.now }
 });

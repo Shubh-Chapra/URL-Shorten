@@ -235,6 +235,7 @@ router.get('/', (req, res) => urlController.getAllUrls(req, res));
  *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.get('/:id', (req, res) => urlController.getUrlById(req, res));
+
 /**
  * @swagger
  * /api/shorten/code/{shortCode}:
@@ -304,9 +305,7 @@ router.get('/:id', (req, res) => urlController.getUrlById(req, res));
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-
 router.get('/code/:shortCode', (req, res) => urlController.getUrlByShortCode(req, res));
-
 
 /**
  * @swagger
@@ -397,7 +396,6 @@ router.post('/', tokenAuth, (req, res) => urlController.createShortUrl(req, res)
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-//router.put('/:id', (req, res) => urlController.updateUrlById(req, res));
 router.put('/:id', tokenAuth, (req, res) => urlController.updateUrlById(req, res));
 
 // Update by shortCode
@@ -451,8 +449,8 @@ router.put('/:id', tokenAuth, (req, res) => urlController.updateUrlById(req, res
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-//router.put('/short/:shortCode', (req, res) => urlController.updateUrlByShortCode(req, res));
 router.put('/short/:shortCode', tokenAuth, (req, res) => urlController.updateUrlByShortCode(req, res));
+
 /**
  * @swagger
  * /api/shorten/{id}:
@@ -491,7 +489,6 @@ router.put('/short/:shortCode', tokenAuth, (req, res) => urlController.updateUrl
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-//router.delete('/:id', (req, res) => urlController.deleteUrlById(req, res));
 router.delete('/:id', tokenAuth, (req, res) => urlController.deleteUrlById(req, res));
 
 
@@ -533,7 +530,6 @@ router.delete('/:id', tokenAuth, (req, res) => urlController.deleteUrlById(req, 
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-//router.delete('/short/:shortCode', (req, res) => urlController.deleteUrlByShortCode(req, res));
 router.delete('/short/:shortCode', tokenAuth, (req, res) => urlController.deleteUrlByShortCode(req, res));
 
 /**
@@ -588,15 +584,10 @@ router.delete('/short/:shortCode', tokenAuth, (req, res) => urlController.delete
  */
 router.get('/redirect/:shortCode', (req, res) => urlController.redirectToOriginal(req, res));
 
-
 const { validateUserRegistration, validateUrlLogin, validateUrlCreation, validateUrlUpdate } = require('../middleware/validation');
-
-
-
 
 // Apply validation middleware
  router.post('/create', validateUrlCreation, urlController.createShortUrl);
 router.post('/update', validateUrlUpdate, urlController.updateUrlById);
 
-// module.exports = router;
 module.exports = router;

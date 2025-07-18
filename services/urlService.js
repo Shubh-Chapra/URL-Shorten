@@ -7,7 +7,7 @@ class UrlService {
       const {entity_type,
   entity_id,
   extra_params,
-  expiration_date, short_code, user_code } = data;
+  expiration_date, short_code, redirect_path, user_code } = data;
 
       const shortCode = short_code || generateShortCode();
       const existing = await urlRepository.findByShortCode(shortCode);
@@ -28,6 +28,7 @@ class UrlService {
         expiration_date,
         entity_type,
         entity_id,
+        redirect_path,
         extra_params,
         created_at: new Date()
       });
@@ -213,10 +214,22 @@ class UrlService {
 
     const baseUrl = url.app_id?.base_url;
     if (!baseUrl) {
-      return { success: false, statusCode: 500, message: 'Base URL not found in app config' };
-    }
+  return { success: false, statusCode: 500, message: 'Base URL not found in app config' };
+}
 
-    return { success: true, redirectUrl: baseUrl };
+   const dynamicPath = `/${url.entity_type}/${url.entity_id}`;
+   const finalPath = url.redirect_path || dynamicPath;
+
+   const redirectUrl = new URL(baseUrl);
+   redirectUrl.pathname = (redirectUrl.pathname.replace(/\/$/, '') + finalPath).replace(/\/{2,}/g, '/');
+
+   if (url.extra_params && typeof url.extra_params === 'object') {
+   for (const [key, value] of Object.entries(url.extra_params)) {
+    redirectUrl.searchParams.set(key, value);
+  }
+ }
+ return { success: true, redirectUrl: redirectUrl.toString() };
+
   } catch (error) {
     return { success: false, statusCode: 500, message: 'Redirect failed', error: error.message };
   }
